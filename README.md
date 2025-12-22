@@ -18,5 +18,11 @@ Here are some ideas to get you started:
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&width=435&lines=Thank+You)](https://git.io/typing-svg)
 
+<!-- htmls css3 typescript eact c+= java javascropt sing visualstudiocode intellij-->
 <img src="https://img.shields.io/badge/C++-00599C?style=flat-square&logo=C++&logoColo=white"/>
 <img src="https://img.shields.io/badge/Python-3C2179?style=flat-square&logo=Python&logoColo=white"/>
+
+
+
+![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=anuraghazra&show_icons=true&theme=radical)
+![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=anuraghazra&show_icons=true&theme=transparent)
