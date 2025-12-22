@@ -15,3 +15,7 @@ Here are some ideas to get you started:
 -->
 
 ![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=10&height=200&text=HDYSEUNG'S%20GITHUB&fontSize=50&animation=twinkling&fontAlign=68&fontAlignY=36))
+
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&width=435&lines=Thank+You)](https://git.io/typing-svg)
+
+<img src="https://imgshields.io/badge/#3776AB?style=flat-square&logo=html5&logoColo=white"/>
