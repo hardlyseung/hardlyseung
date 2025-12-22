@@ -18,4 +18,4 @@ Here are some ideas to get you started:
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&width=435&lines=Thank+You)](https://git.io/typing-svg)
 
-<img src="https://imgshields.io/badge/#3776AB?style=flat-square&logo=html5&logoColo=white"/>
+<img src="https://img.shields.io/badge/#3776AB?style=flat-square&logo=html5&logoColo=white"/>
