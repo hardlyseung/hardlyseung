@@ -2,10 +2,6 @@
 
 <!--
 **hardlyseung/hardlyseung** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-![header](https://capsule-render.vercel.app/api?type=wave&color=gradient&customColorList=200&text=HARDLYSEUNG'S%20GITHUB&fontSize=50&animation=twinkling&fontAlign=68&fontAlignY=36))
-
-
 Here are some ideas to get you started:
 
 - 🔭 I’m currently working on ...
@@ -17,3 +13,5 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+
+![header](https://capsule-render.vercel.app/api?type=wave&color=gradient&customColorList=200&text=HARDLYSEUNG'S%20GITHUB&fontSize=50&animation=twinkling&fontAlign=68&fontAlignY=36))
