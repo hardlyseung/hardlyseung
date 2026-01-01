@@ -1,10 +1,3 @@
-<!--
--->
-
-![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=10&height=200&text=HARDLY_SEUNG'S%20GITHUB&fontSize=50&animation=twinkling&fontAlign=68&fontAlignY=36)
-
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&width=435&lines=Hello+World!!)](https://git.io/typing-svg)
-
 
 <!---->
 
