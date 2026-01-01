@@ -1,17 +1,9 @@
 <!--
 -->
 
-![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=10&height=200&text=HDYSEUNG'S%20GITHUB&fontSize=50&animation=twinkling&fontAlign=68&fontAlignY=36))
+![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=10&height=200&text=HARDLY_SEUNG'S%20GITHUB&fontSize=50&animation=twinkling&fontAlign=68&fontAlignY=36)
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&width=435&lines=Thank+You)](https://git.io/typing-svg)
-
-<!-- htmls css3 
-typescript react c++ 
-java javascript visualstudiocode intellij-->
-<img src="https://img.shields.io/badge/C++-00599C?style=flat-square&logo=C++&logoColo=white"/>
-<img src="https://img.shields.io/badge/Python-3C2179?style=flat-square&logo=Python&logoColo=white"/>
-
-![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=anuraghazra&show_icons=true&theme=radical)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&width=435&lines=Hello+World!!)](https://git.io/typing-svg)
 
 
 <!---->
@@ -19,7 +11,7 @@ java javascript visualstudiocode intellij-->
 <div align="">
     <br/>
 
-  <img align="right" width="36" src="https://github.com/user-attachments/assets/f714934c-034a-4adf-a152-423b4003122c" />
+  <img align="right" width="36" src="large.Animated.gif.d903572af383345b2ab77fcb4fd63c61.gif" />
 
   <a href="https://velog.io/@seondal/series"><img src="https://img.shields.io/badge/seondal.log-3DDC84?style=badge&logo=Velog&logoColor=white"/></a> <a href="https://whkakrkr.tistory.com"><img src="https://img.shields.io/badge/Seondalgorithm-E5511E?style=badge&logo=Tistory&logoColor=white"/></a> <a href="https://instagram.com/dev_seondal"><img src="https://img.shields.io/badge/instagram-d62976?style=badge&logo=Instagram&logoColor=white"/></a> <a href="https://solved.ac/whkakrkr"><img src="http://mazassumnida.wtf/api/mini/generate_badge?boj=whkakrkr&theme=dark"/></a>
 
@@ -30,25 +22,6 @@ java javascript visualstudiocode intellij-->
 
 
 
-
-
-
-
-
-
-
-  
-  
-  
-  <div align="">
-    <br/>
-
-  <img align="right" width="36" src="https://github.com/user-attachments/assets/f714934c-034a-4adf-a152-423b4003122c" />
-
-  <a href="https://velog.io/@seondal/series"><img src="https://img.shields.io/badge/seondal.log-3DDC84?style=badge&logo=Velog&logoColor=white"/></a> <a href="https://whkakrkr.tistory.com"><img src="https://img.shields.io/badge/Seondalgorithm-E5511E?style=badge&logo=Tistory&logoColor=white"/></a> <a href="https://instagram.com/dev_seondal"><img src="https://img.shields.io/badge/instagram-d62976?style=badge&logo=Instagram&logoColor=white"/></a> <a href="https://solved.ac/whkakrkr"><img src="http://mazassumnida.wtf/api/mini/generate_badge?boj=whkakrkr&theme=dark"/></a>
-
-   <!--<a href="https://seondal.notion.site/fd0c2a204d8e4fd7b193800c20d5eda0?v=c62e2af146ed446a97b34c86c16d4835&pvs=4"><img src="https://img.shields.io/badge/ReadMe-735998?style=badge&logo=GitHub&logoColor=white"/></a>-->
-   
   ---
 
 <details>
