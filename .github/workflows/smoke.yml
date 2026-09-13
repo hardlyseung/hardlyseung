@@ -126,7 +126,10 @@ jobs:
               console.error('::error::답변 본문이 비어 있습니다.');
               process.exit(1);
             }
-            console.log('답변 ' + r.answer.length + '자, 출처 ' + (r.source || '없음'));
+            // source 는 {name, date} 객체다. 그대로 이어붙이면 [object Object] 가 찍혀
+            // 어느 자료로 답했는지 로그에서 알 수 없다.
+            const src = r.source && r.source.name ? r.source.name : '없음';
+            console.log('답변 ' + r.answer.length + '자, 출처 ' + src);
           "
 
       - name: 허용되지 않은 출처를 막는가
