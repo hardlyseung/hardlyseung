@@ -71,6 +71,8 @@ tests/security.js   보안 방어 자동 점검 (의존성 없음)
 tests/data-shape.js 데이터 내용 점검 — 파싱은 되는데 내용이 빈 경우를 잡는다
 tests/dom-ids.js    app.js 가 찾는 DOM id 가 index.html 에 있는지 대조
 .github/workflows/verify.yml  푸시·PR 마다 위 검증을 전부 실행
+.github/workflows/smoke.yml   배포 후·매일 — 배포된 주소가 실제로 답하는지
+.nvmrc              로컬·CI 의 Node 버전 (Vercel 런타임은 대시보드에서 따로 지정한다)
 .vercelignore       프로덕션에 올리지 않을 것 (tests·scripts·docs·문서·죽은 파일)
 README.md           프로젝트 소개 · 실행 · 배포 · 알려진 한계
 SECURITY.md         위협 모델 · 무엇을 막고 무엇을 못 막는지
@@ -112,3 +114,6 @@ DOM id 대조는 `tests/dom-ids.js` 가 대신한다. 다만 id 를 변수로 �
 `IDIRECT` 목록에 이름을 추가한다. 빠뜨리면 "확인 못 한 호출"로 보고된다.
 
 실제 화면·지도·AI 응답은 배포된 주소에서 확인해야 한다. CI는 브라우저를 띄우지 않는다.
+다만 `smoke.yml` 이 배포 후와 매일, 배포된 주소에 실제로 요청을 보내 확인한다.
+**상태코드만 보지 않는다** — `/api/chat` 은 모델이 죽어도 안내 문구를 담아 200을
+돌려주는 경로가 있어서, 응답 본문의 `grounded` 까지 봐야 진짜 동작을 확인한 것이 된다.

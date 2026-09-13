@@ -21,9 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # .nvmrc 를 따른다. 버전을 두 군데 적어 두면 언젠가 갈라진다.
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
 
       # 문법 — 배포되면 화면 전체가 죽는 종류
       - name: 자바스크립트 문법

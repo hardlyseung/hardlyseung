@@ -35,12 +35,27 @@
 
 ### 2. 좌표 채우기
 
-**권장 — 브라우저에서.** 배포한 뒤 `https://<배포주소>/geocode.html` 을 열고 버튼 한 번 누른다.
-카카오맵 JavaScript 키만 쓰므로 REST 키 발급도, Node 설치도 필요 없다.
-결과를 복사해 GitHub 웹 편집기로 `data/places.json` 에 붙여넣고 커밋하면 Vercel이 자동 재배포한다.
-주소 검색이 실패하면 장소명 키워드 검색으로 자동 재시도하며, 어느 경로로 찾았는지 표에 표시된다.
+**권장 — 브라우저에서.** `geocode.html` 은 운영자만 쓰는 도구라 프로덕션에 배포하지
+않는다(`.vercelignore`). 로컬에서 정적 서버를 띄우고 연다 — 카카오 JavaScript 키는
+도메인 제한이 걸려 있어서 `file://` 로 직접 열면 지도 SDK 가 거부한다.
 
-**대안 — 로컬에서.** Node 18+ 와 카카오 **REST API 키**가 있다면:
+```bash
+# 저장소 폴더에서 (파이썬은 대부분 이미 깔려 있다)
+python3 -m http.server 3000
+# 또는  npx --yes serve -l 3000
+```
+
+그 다음 `http://localhost:3000/geocode.html` 을 열고 버튼 한 번 누른다.
+아래 3번에서 `http://localhost:3000` 을 카카오 콘솔에 등록해 두어야 동작한다.
+REST 키 발급은 필요 없다.
+
+결과를 복사해 GitHub 웹 편집기로 `data/places.json` 에 붙여넣고 커밋한다.
+**웹 편집기는 JSON 문법을 검사하지 않는다.** 커밋하면 GitHub Actions 가 파싱·내용을
+검사하므로, 붙여넣기 실수는 초록/빨강 표시로 바로 확인할 수 있다. 초록이면 Vercel 이
+자동 재배포한다. 주소 검색이 실패하면 장소명 키워드 검색으로 자동 재시도하며,
+어느 경로로 찾았는지 표에 표시된다.
+
+**대안 — 명령줄에서.** Node 18+ 와 카카오 **REST API 키**가 있다면:
 
 ```powershell
 $env:KAKAO_REST_KEY="복사한_REST_API_키"
@@ -117,21 +132,41 @@ Live Server 같은 정적 서버로 열면 지도·목록·FAQ는 동작하지�
 
 ---
 
+## Node 버전 고정
+
+**Vercel 대시보드에서 해야 한다.** 저장소 파일로는 안 된다.
+
+Project Settings → Build and Deployment → **Node.js Version** 을 `22.x` 로 지정한다.
+지정하지 않으면 Vercel 기본값으로 돌고, Vercel 은 주기적으로 구버전 Node 를 폐기하며
+프로젝트를 자동 상향시킨다. 어느 날 런타임이 바뀌어 `api/chat.js` 가 조용히 깨지면
+2027-03-31 운영 조건을 어기게 된다.
+
+**Node 20 은 2026-10-01 에 폐기 예정이다.** 지금 기본값이 20이면 그 날 바뀐다.
+
+저장소의 `.nvmrc` 는 로컬 개발과 GitHub Actions 가 쓰는 값이다
+(`verify.yml` 이 `node-version-file` 로 읽는다). **Vercel 은 이 파일을 보지 않는다** —
+Vercel 이 인정하는 건 Project Settings 와 `package.json` 의 `engines.node` 뿐이다.
+이 프로젝트는 빌드 도구를 두지 않기 위해 `package.json` 을 만들지 않았으므로,
+대시보드 설정이 유일한 수단이다.
+
+고정한 버전이 지원 종료되면 이번엔 배포가 실패한다. 폐기 공지를 받을 수 있도록
+Vercel 알림 메일을 받는 상태로 두는 것까지가 한 세트다.
+
 ## 파일 구조
 
 레포 최상위에 바로 있다 (Vercel Root Directory 설정 불필요하게 하려고 이렇게 뒀다).
-최상위 `README.md`는 GitHub 프로필용이라 건드리지 않았다 — 프로젝트 설명은 이 파일(`SETUP.md`).
+`README.md` 는 프로젝트 소개·구조·알려진 한계를, 이 파일은 배포와 키 설정 절차를 맡는다.
 
 ```
 index.html                     # 화면 구조
-geocode.html                   # 좌표 채우기 도구 (브라우저에서 실행)
+geocode.html                   # 좌표 채우기 도구 (로컬에서만 실행, 배포 제외)
 css/style.css                  # 스타일 (다크모드 대응)
 js/app.js                      # 지도·필터·검색·상세·전시·AI 호출
 api/chat.js                    # 서버리스 함수 — 근거 조립 + Gemini 호출 + 차단/오류 처리
 data/places.json               # 거점 18곳 + 데이터셋 선언 + 검증 기록 (해설 내용 TODO)
-data/exhibitions.json          # 전시회 (CSV 변환 전에는 빈 배열)
-scripts/geocode.js             # 주소 → 좌표 변환 (로컬 대안)
-scripts/convert-exhibitions.js # 전시회 CSV → JSON
+data/exhibitions.json          # 전시·행사 개최 기록 (CSV 변환 전에는 빈 배열)
+scripts/geocode.js             # 주소 → 좌표 변환 (명령줄 대안, REST 키 필요)
+scripts/convert-exhibitions.js # 전시·행사 CSV → JSON (--facility 로 시설 지정)
 docs/METHODOLOGY.md            # AI 협업 개발 방법론
 CLAUDE.md                      # AI 도구용 작업 규칙
 vercel.json                    # 프레임워크 자동감지 비활성화

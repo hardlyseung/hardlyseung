@@ -1,0 +1,121 @@
+# 배포된 주소가 실제로 살아 있는지 확인한다.
+#
+# 왜 필요한가: 이 서비스는 2027-03-31 까지 사실상 무인으로 떠 있어야 하는데,
+# 지금까지 배포 후 확인이 전적으로 사람 기억에 달려 있었다. 실제로 Gemini 모델
+# 슬러그가 404 로 죽어 후보를 갈아끼운 이력이 있고(113c6d4, 721d312),
+# 그때도 사용자가 알려주기 전까지 아무도 몰랐다.
+#
+# 중요 — 상태코드만 보면 안 된다. /api/chat 은 모델이 죽어도 "안내 문구"를 담아
+# 200 을 돌려주는 경로가 있다(근거 부족·안전필터·빈 응답). 그게 의도된 설계지만,
+# 감시 입장에서는 200 이 곧 정상이 아니라는 뜻이다. 그래서 본문의 grounded 까지 본다.
+
+name: smoke
+
+on:
+  # Vercel 이 배포 결과를 알려줄 때
+  deployment_status:
+  # 아무 일이 없어도 하루 한 번. GitHub 는 60일간 저장소 활동이 없으면
+  # 예약 워크플로를 자동 비활성화하고 소유자에게 메일을 보낸다 —
+  # 18개월 무인 운영에서는 그 메일을 받을 수 있는 상태로 두는 것까지가 한 세트다.
+  schedule:
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    # 프리뷰 배포까지 검사하면 무료 할당량만 먹는다. 프로덕션 성공 건만 본다.
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 대상 주소 결정
+        id: target
+        env:
+          # 배포 이벤트면 그 배포의 주소를, 아니면 저장소 변수를,
+          # 둘 다 없으면 기본 주소를 쓴다.
+          FROM_EVENT: ${{ github.event.deployment_status.target_url }}
+          FROM_VARS: ${{ vars.SITE_URL }}
+        run: |
+          URL="${FROM_EVENT:-${FROM_VARS:-https://vibe-gwang-ju-on.vercel.app}}"
+          URL="${URL%/}"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "확인 대상: $URL"
+
+      - name: 첫 화면이 뜨는가
+        run: |
+          URL="${{ steps.target.outputs.url }}"
+          code=$(curl -sS -o /tmp/home.html -w '%{http_code}' --max-time 20 "$URL/")
+          echo "GET / → $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::첫 화면이 $code 를 돌려줬습니다. 배포 상태를 확인하세요."
+            exit 1
+          fi
+          # 200 인데 내용이 비어 있는 경우를 거른다.
+          grep -q "광주" /tmp/home.html || {
+            echo "::error::200 이지만 본문에 기대한 내용이 없습니다."; exit 1; }
+
+      - name: 거점 데이터를 받을 수 있는가
+        run: |
+          URL="${{ steps.target.outputs.url }}"
+          code=$(curl -sS -o /tmp/places.json -w '%{http_code}' --max-time 20 "$URL/data/places.json")
+          echo "GET /data/places.json → $code"
+          [ "$code" = "200" ] || { echo "::error::거점 데이터가 $code."; exit 1; }
+          node -e "
+            const d = require('/tmp/places.json');
+            if (!Array.isArray(d.spots) || !d.spots.length) {
+              console.error('::error::배포된 places.json 의 spots 가 비어 있습니다.');
+              process.exit(1);
+            }
+            console.log('거점 ' + d.spots.length + '곳');
+          "
+
+      - name: AI 해설이 실제로 답하는가
+        run: |
+          URL="${{ steps.target.outputs.url }}"
+          # 5·18 관련 거점은 안전필터에 정상적으로 걸릴 수 있어 오탐이 된다.
+          # 근거 자료가 넉넉하면서 중립적인 거점(희경루)으로 묻는다.
+          body='{"placeId":4,"question":"여기는 어떤 곳인가요?","persona":"basic","language":"ko"}'
+          code=$(curl -sS -o /tmp/chat.json -w '%{http_code}' --max-time 40 \
+            -X POST "$URL/api/chat" \
+            -H "Content-Type: application/json" \
+            -H "Origin: $URL" \
+            -H "Referer: $URL/" \
+            -d "$body")
+          echo "POST /api/chat → $code"
+          cat /tmp/chat.json
+
+          if [ "$code" != "200" ]; then
+            echo "::error::/api/chat 이 $code 를 돌려줬습니다. 502 면 모델명이 더 이상 유효하지 않다는 뜻이라 MODEL_CANDIDATES 를 확인하세요."
+            exit 1
+          fi
+
+          node -e "
+            const r = require('/tmp/chat.json');
+            // 200 이어도 reason 이 붙어 있으면 모델이 아니라 폴백이 답한 것이다.
+            if (r.grounded !== true) {
+              console.error('::error::200 이지만 근거 기반 답변이 아닙니다 (reason=' + (r.reason || '없음') + '). 모델·키·근거 자료를 확인하세요.');
+              process.exit(1);
+            }
+            if (!r.answer || !r.answer.trim()) {
+              console.error('::error::답변 본문이 비어 있습니다.');
+              process.exit(1);
+            }
+            console.log('답변 ' + r.answer.length + '자, 출처 ' + (r.source || '없음'));
+          "
+
+      - name: 허용되지 않은 출처를 막는가
+        run: |
+          URL="${{ steps.target.outputs.url }}"
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 \
+            -X POST "$URL/api/chat" \
+            -H "Content-Type: application/json" \
+            -H "Origin: https://evil.example.com" \
+            -d '{"placeId":4,"question":"테스트"}')
+          echo "다른 출처에서 POST → $code"
+          [ "$code" = "403" ] || { echo "::error::출처 검증이 동작하지 않습니다 ($code, 403 이어야 함)."; exit 1; }
