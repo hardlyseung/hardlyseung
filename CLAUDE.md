@@ -68,6 +68,10 @@ scripts/geocode.js             주소 → 좌표 (카카오 로컬 API)
 scripts/convert-exhibitions.js 전시·행사 CSV → JSON (--facility 로 시설 지정)
 tests/origin.js     /api/chat 출처 검증 점검 (의존성 없음)
 tests/security.js   보안 방어 자동 점검 (의존성 없음)
+tests/data-shape.js 데이터 내용 점검 — 파싱은 되는데 내용이 빈 경우를 잡는다
+tests/dom-ids.js    app.js 가 찾는 DOM id 가 index.html 에 있는지 대조
+.github/workflows/verify.yml  푸시·PR 마다 위 검증을 전부 실행
+.vercelignore       프로덕션에 올리지 않을 것 (tests·scripts·docs·문서·죽은 파일)
 README.md           프로젝트 소개 · 실행 · 배포 · 알려진 한계
 SECURITY.md         위협 모델 · 무엇을 막고 무엇을 못 막는지
 ```
@@ -85,17 +89,26 @@ SECURITY.md         위협 모델 · 무엇을 막고 무엇을 못 막는지
 
 ## 검증
 
-이 저장소에는 테스트 프레임워크가 없다. 변경 후 최소한 다음을 확인한다.
+이 저장소에는 테스트 프레임워크가 없다. 아래는 전부 의존성 없이 바로 돈다.
 
 ```bash
 node --check js/app.js
 node --check api/chat.js
-node -e "require('./data/places.json')"
+node -e "require('./data/places.json'); require('./data/exhibitions.json')"
 
-# 보안 방어 (의존성 없음)
-node tests/origin.js
-node tests/security.js
+node tests/data-shape.js   # 데이터가 화면이 기대하는 모양인지
+node tests/dom-ids.js      # app.js 가 찾는 id 가 index.html 에 있는지
+node tests/origin.js       # /api/chat 출처 검증 15건
+node tests/security.js     # 인젝션·비밀 차단·헤더 21건
 ```
 
-`js/app.js` 가 참조하는 DOM id가 `index.html` 에 모두 존재하는지도 함께 본다.
-실제 화면·지도·AI 응답은 배포된 주소에서 확인해야 한다.
+**푸시하면 `.github/workflows/verify.yml` 이 위를 그대로 돌린다.**
+이 저장소는 푸시가 곧 배포라, 여기서 못 막은 실수는 사용자 화면으로 나간다.
+특히 데이터 갱신 절차가 GitHub 웹 편집기로 `data/places.json` 을 고치는 것인데
+웹 편집기는 JSON 문법을 검사하지 않는다 — 쉼표 하나를 잡아낼 곳이 CI뿐이다.
+
+DOM id 대조는 `tests/dom-ids.js` 가 대신한다. 다만 id 를 변수로 넘기는 호출은
+정적으로 따라갈 수 없어, `app.js` 에 그런 헬퍼를 새로 만들면 그 스크립트의
+`IDIRECT` 목록에 이름을 추가한다. 빠뜨리면 "확인 못 한 호출"로 보고된다.
+
+실제 화면·지도·AI 응답은 배포된 주소에서 확인해야 한다. CI는 브라우저를 띄우지 않는다.

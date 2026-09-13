@@ -51,6 +51,9 @@ scripts/geocode.js              주소 → 좌표 (카카오 로컬 API)
 scripts/convert-exhibitions.js  전시·행사 CSV → JSON
 tests/origin.js                 /api/chat 출처 검증 점검
 tests/security.js               보안 방어 자동 점검
+tests/data-shape.js             데이터 내용 점검
+tests/dom-ids.js                DOM id 대조
+.github/workflows/verify.yml    푸시·PR 마다 검증 실행
 ```
 
 ## 로컬 실행
@@ -109,18 +112,26 @@ node scripts/convert-exhibitions.js <CSV경로> --facility=김대중컨벤션센
 ```bash
 node --check js/app.js
 node --check api/chat.js
-node -e "require('./data/places.json')"
-```
+node -e "require('./data/places.json'); require('./data/exhibitions.json')"
 
-`js/app.js` 가 참조하는 DOM id 가 `index.html` 에 모두 있는지도 함께 봅니다.
-실제 화면·지도·AI 응답은 배포된 주소에서 확인해야 합니다.
-
-보안 점검은 의존성 없이 바로 돌아갑니다.
-
-```bash
+node tests/data-shape.js  # 데이터가 화면이 기대하는 모양인지
+node tests/dom-ids.js     # app.js 가 찾는 id 가 index.html 에 있는지
 node tests/origin.js      # 출처 검증 15건
 node tests/security.js    # 인젝션·비밀 차단·헤더 등 21건
 ```
+
+전부 런타임 의존성이 없어 `npm install` 없이 돌아가고, 다 합쳐 20초 안에 끝납니다.
+
+**푸시하면 GitHub Actions(`.github/workflows/verify.yml`)가 위를 그대로 실행합니다.**
+이 저장소는 푸시가 곧 배포입니다. 데이터 갱신 절차가 GitHub 웹 편집기로
+`data/places.json` 을 고치는 것인데 웹 편집기는 JSON 문법을 검사하지 않으므로,
+쉼표 하나 빠진 커밋을 잡아낼 곳이 CI뿐입니다.
+
+CI를 실제 관문으로 만들려면 GitHub 저장소 설정에서 `main` 브랜치에
+**required status check** 로 `check` 작업을 걸어야 합니다. 걸지 않으면
+빨간불이어도 배포는 그대로 나갑니다.
+
+실제 화면·지도·AI 응답은 배포된 주소에서 확인해야 합니다. CI는 브라우저를 띄우지 않습니다.
 
 무엇을 막고 무엇을 못 막는지는 [SECURITY.md](SECURITY.md) 에 적어 두었습니다.
 행정안전부·KISA 가 공개한 「소프트웨어 개발보안 가이드」 진단 항목에 자체 대조한 표도 함께 있습니다

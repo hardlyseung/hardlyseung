@@ -1,0 +1,58 @@
+# push 한 번이 곧 배포인 저장소다. Vercel 은 커밋을 받으면 바로 프로덕션에
+# 올리므로, 여기서 막지 못한 실수는 그대로 사용자 화면에 나간다.
+#
+# 특히 데이터 갱신 절차(SETUP.md)가 "GitHub 웹 편집기로 data/places.json 에
+# 붙여넣고 커밋"이다. 웹 편집기는 JSON 문법을 검사하지 않는다. 쉼표 하나
+# 빠뜨린 커밋을 잡아낼 곳이 여기뿐이다.
+#
+# 런타임 의존성이 0개라 npm install 이 필요 없다. 그래서 전체가 20초 안에 끝난다.
+
+name: verify
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # 문법 — 배포되면 화면 전체가 죽는 종류
+      - name: 자바스크립트 문법
+        run: |
+          node --check js/app.js
+          node --check api/chat.js
+          node --check scripts/geocode.js
+          node --check scripts/convert-exhibitions.js
+
+      # 데이터 — 웹 편집기로 직접 고치는 파일이라 가장 깨지기 쉽다
+      - name: 데이터 파일 파싱
+        run: node -e "require('./data/places.json'); require('./data/exhibitions.json')"
+
+      # 화면에 쓰는 값이 실제로 들어 있는지. 파싱만 통과하고 내용이 빈
+      # 파일이 배포되는 걸 막는다.
+      - name: 데이터 내용 점검
+        run: node tests/data-shape.js
+
+      # index.html 에 없는 id 를 js/app.js 가 찾으면 그 기능만 조용히 죽는다.
+      # 사람 눈에 맡겨져 있던 검사다.
+      - name: DOM id 대조
+        run: node tests/dom-ids.js
+
+      # 출처 검증 15건
+      - name: /api/chat 출처 검증
+        run: node tests/origin.js
+
+      # 인젝션 방어·비밀 유출·헤더 21건.
+      # "소스에 서버용 API 키 하드코딩 없음"이 여기 들어 있어서,
+      # 키를 커밋하면 이 단계가 빨간불이 된다.
+      - name: 보안 방어
+        run: node tests/security.js

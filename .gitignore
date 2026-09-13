@@ -1,0 +1,22 @@
+# 서버용 키는 환경변수로만 다룬다(CLAUDE.md 규칙 4).
+# vercel dev 를 한 번 돌리면 아래 파일들이 생기고, git add . 한 번에 딸려 들어간다.
+# 주의력에 기대지 않고 여기서 막는다.
+.env
+.env.*
+!.env.example
+.vercel/
+
+# 에디터·OS 가 흘리는 것들
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# 런타임 의존성이 없는 프로젝트다. node_modules 가 생겼다면
+# 도구를 돌린 흔적이지 배포에 필요한 것이 아니다.
+node_modules/
+npm-debug.log*
+
+# 좌표 채우기·CSV 변환 중간 산출물
+*.local.json
