@@ -63,7 +63,10 @@ jobs:
           # 걸린다. 그 틈에 한 번 실패했다고 빨간불을 켜면 오탐만 쌓인다.
           code=""
           for attempt in 1 2 3; do
-            code=$(curl -sS -o /tmp/home.html -w '%{http_code}' --max-time 20 "$URL/" || echo "000")
+            # curl 은 연결 실패 시에도 %{http_code} 로 000 을 쓴다.
+            # 여기에 폴백을 또 붙이면 "000000" 이 되어 로그가 헷갈린다.
+            code=$(curl -sS -o /tmp/home.html -w '%{http_code}' --max-time 20 "$URL/") || true
+            code="${code:-000}"
             echo "GET / → $code (시도 $attempt)"
             [ "$code" = "200" ] && break
             [ $attempt -lt 3 ] && sleep 10
