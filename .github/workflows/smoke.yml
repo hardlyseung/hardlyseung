@@ -132,38 +132,42 @@ jobs:
             console.log('답변 ' + r.answer.length + '자, 출처 ' + src);
           "
 
-      # 지도는 브라우저에서만 뜨므로 CI가 직접 확인할 수 없다. 대신 카카오가
-      # 그 도메인에 SDK 를 내주는지는 물어볼 수 있다 — 도메인 미등록이
-      # 지도 실패의 가장 흔한 원인이고, 화면에 뜨는 안내도 그걸 가리킨다.
+      # 지도는 브라우저에서만 뜨므로 CI 가 직접 확인할 수 없다. 대신 카카오가
+      # 그 도메인에 SDK 를 내주는지는 물어볼 수 있고, 도메인 미등록이
+      # 지도 실패의 가장 흔한 원인이다.
       #
-      # 카카오가 Referer 로 도메인을 가리는지 먼저 확인해야 이 검사가 의미가
-      # 있다. 그래서 등록된 주소와 엉뚱한 주소 두 가지로 같이 물어보고,
-      # 응답이 서로 다른지 본다. 아직은 판정하지 않고 보고만 한다.
-      - name: 카카오 지도 SDK 진단
+      # 카카오는 Referer 로 도메인을 정확히 가린다(등록 안 된 주소에는
+      # 401 AccessDeniedError "domain mismatched!"). 실제로 확인하고 넣은
+      # 검사다. 그래서 등록 안 된 주소로도 한 번 물어 본다 — 그쪽까지
+      # 200 이 오면 카카오가 더 이상 안 가린다는 뜻이고, 이 검사는 그날부터
+      # 아무것도 지켜주지 못하므로 그 사실을 로그에 남긴다.
+      - name: 카카오 지도 SDK 를 내주는가
         run: |
           URL="${{ steps.target.outputs.url }}"
           SDK="https://dapi.kakao.com/v2/maps/sdk.js?appkey=91c073489a8d4aaf847cf49ef9bbb679&autoload=false"
 
-          probe() {
-            local label="$1" referer="$2"
-            local code size head
-            code=$(curl -sS -o /tmp/sdk.js -w '%{http_code}' --max-time 20 \
-              -H "Referer: $referer" -H "Origin: ${referer%/}" "$SDK") || code="000"
-            size=$(wc -c < /tmp/sdk.js | tr -d ' ')
-            head=$(head -c 200 /tmp/sdk.js | tr '\n' ' ')
-            echo "── $label"
-            echo "   Referer : $referer"
-            echo "   상태     : $code, 본문 $size 바이트"
-            echo "   앞부분   : $head"
-          }
+          ours=$(curl -sS -o /tmp/sdk.js -w '%{http_code}' --max-time 20 \
+            -H "Referer: $URL/" "$SDK") || ours="000"
+          echo "우리 도메인($URL) → $ours"
 
-          probe "우리 도메인" "$URL/"
-          probe "엉뚱한 도메인" "https://not-registered.example.com/"
-          probe "Referer 없음" ""
+          if [ "$ours" != "200" ]; then
+            echo "본문: $(head -c 200 /tmp/sdk.js)"
+            echo "::error::카카오가 이 도메인에 지도 SDK 를 내주지 않습니다. 개발자 콘솔 [내 애플리케이션 > 플랫폼 > Web]에 $URL 이 등록돼 있는지, [제품 설정 > 카카오맵]이 켜져 있는지 확인하세요."
+            exit 1
+          fi
 
-          echo ""
-          echo "세 결과가 모두 같으면 카카오는 Referer 로 막지 않는다는 뜻이고,"
-          echo "그러면 지도 실패 원인은 도메인 등록이 아니라 다른 데 있다."
+          # 받아온 게 진짜 SDK 인지. 200 이어도 오류 문서일 수 있다.
+          grep -q "window.kakao" /tmp/sdk.js || {
+            echo "본문: $(head -c 200 /tmp/sdk.js)"
+            echo "::error::200 이지만 받은 내용이 지도 SDK 가 아닙니다."; exit 1; }
+
+          # 이 검사가 여전히 의미 있는지 확인한다.
+          bogus=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 \
+            -H "Referer: https://not-registered.example.com/" "$SDK") || bogus="000"
+          echo "등록 안 된 도메인 → $bogus (401 이어야 이 검사가 유효)"
+          [ "$bogus" = "200" ] && echo "::warning::카카오가 등록 안 된 도메인에도 SDK 를 내줍니다. 이 검사는 더 이상 도메인 등록을 보증하지 못합니다."
+
+          echo "지도 SDK 정상"
 
       - name: 허용되지 않은 출처를 막는가
         run: |
