@@ -132,6 +132,39 @@ jobs:
             console.log('답변 ' + r.answer.length + '자, 출처 ' + src);
           "
 
+      # 지도는 브라우저에서만 뜨므로 CI가 직접 확인할 수 없다. 대신 카카오가
+      # 그 도메인에 SDK 를 내주는지는 물어볼 수 있다 — 도메인 미등록이
+      # 지도 실패의 가장 흔한 원인이고, 화면에 뜨는 안내도 그걸 가리킨다.
+      #
+      # 카카오가 Referer 로 도메인을 가리는지 먼저 확인해야 이 검사가 의미가
+      # 있다. 그래서 등록된 주소와 엉뚱한 주소 두 가지로 같이 물어보고,
+      # 응답이 서로 다른지 본다. 아직은 판정하지 않고 보고만 한다.
+      - name: 카카오 지도 SDK 진단
+        run: |
+          URL="${{ steps.target.outputs.url }}"
+          SDK="https://dapi.kakao.com/v2/maps/sdk.js?appkey=91c073489a8d4aaf847cf49ef9bbb679&autoload=false"
+
+          probe() {
+            local label="$1" referer="$2"
+            local code size head
+            code=$(curl -sS -o /tmp/sdk.js -w '%{http_code}' --max-time 20 \
+              -H "Referer: $referer" -H "Origin: ${referer%/}" "$SDK") || code="000"
+            size=$(wc -c < /tmp/sdk.js | tr -d ' ')
+            head=$(head -c 200 /tmp/sdk.js | tr '\n' ' ')
+            echo "── $label"
+            echo "   Referer : $referer"
+            echo "   상태     : $code, 본문 $size 바이트"
+            echo "   앞부분   : $head"
+          }
+
+          probe "우리 도메인" "$URL/"
+          probe "엉뚱한 도메인" "https://not-registered.example.com/"
+          probe "Referer 없음" ""
+
+          echo ""
+          echo "세 결과가 모두 같으면 카카오는 Referer 로 막지 않는다는 뜻이고,"
+          echo "그러면 지도 실패 원인은 도메인 등록이 아니라 다른 데 있다."
+
       - name: 허용되지 않은 출처를 막는가
         run: |
           URL="${{ steps.target.outputs.url }}"
